@@ -24,6 +24,12 @@
     <description>The base url of your website as airflow cannot guess what domain or cname you are using. This is used in automated emails that airflow sends to point links to the right web server.</description>
   </property>
   <property>
+    <name>auth_backend</name>
+    <value>airflow.api.auth.backend.default</value>
+    <display-name>Auth backend</display-name>
+    <description>How to authenticate users.</description>
+  </property>
+  <property>
     <name>web_server_host</name>
     <value>0.0.0.0</value>
     <display-name>The ip specified when starting the web server.</display-name>

@@ -3,7 +3,7 @@ from resource_management import *
 from subprocess import call
 from airflow_setup import *
 
-class AirflowWorker(Script):
+class AirflowScheduler(Script):
 	"""
 	Contains the interface definitions for methods like install, 
 	start, stop, status, etc. for the Airflow Server
@@ -13,8 +13,8 @@ class AirflowWorker(Script):
 		env.set_params(params)
 		self.install_packages(env)
 		Logger.info(format("Installing Airflow Service"))
-		Execute(format("pip install {airflow_pip_params} apache-airflow[all]==1.9.0 apache-airflow[celery]==1.9.0"))
-		Execute(format("useradd {airflow_user}"), ignore_failures=True)
+		Execute(format("pip install {airflow_pip_params} pyasn1==0.4.4 ldap3 apache-airflow[all]==1.10.0 apache-airflow[celery]==1.10.0"))
+		Execute(format("id -u {airflow_user} &>/dev/null || useradd {airflow_user}"), ignore_failures=True)
 		Execute(format("mkdir -p {airflow_home}"))
 		airflow_make_startup_script(env)
 		Execute(format("chown -R {airflow_user}:{airflow_group} {airflow_home}"))
@@ -26,29 +26,29 @@ class AirflowWorker(Script):
 		import params
 		env.set_params(params)
 		airflow_configure(env)
-		airflow_make_systemd_scripts_worker(env)
+		airflow_make_systemd_scripts_scheduler(env)
 		
 	def start(self, env):
 		import params
 		self.configure(env)
-		Execute("service airflow-worker start")
-		time.sleep(10)
-		Execute ('ps -ef | grep "airflow serve_logs" | grep -v grep | awk \'{print $2}\' > ' + params.airflow_worker_pid_file, user=params.airflow_user)
+		Execute("service airflow-scheduler start")
+		Execute ('ps -ef | grep "airflow scheduler" | grep -v grep | awk \'{print $2}\' | tail -n 1 > ' + params.airflow_scheduler_pid_file, user=params.airflow_user)
 
 	def stop(self, env):
 		import params
 		env.set_params(params)
 		# Kill the process of Airflow
-		Execute("service airflow-worker stop")
-		File(params.airflow_worker_pid_file,
-			action = "delete"
+		Execute("service airflow-scheduler stop")
+		File(params.airflow_scheduler_pid_file,
+			action = "delete",
+			owner = params.airflow_user
 		)
 
 	def status(self, env):
 		import status_params
 		env.set_params(status_params)
 		#use built-in method to check status using pidfile
-		check_process_status(status_params.airflow_worker_pid_file)
+		check_process_status(status_params.airflow_scheduler_pid_file)
 
 if __name__ == "__main__":
-	AirflowWorker().execute()
+	AirflowScheduler().execute()

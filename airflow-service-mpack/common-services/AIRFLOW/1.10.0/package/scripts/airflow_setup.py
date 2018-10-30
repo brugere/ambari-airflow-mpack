@@ -152,7 +152,6 @@ def airflow_configure(env):
 	airflow_config = airflow_generate_config_for_section({
 		"core" : params.config['configurations']['airflow-core-site'],
 		"cli" : params.config['configurations']['airflow-cli-site'],
-		"api" : params.config['configurations']['airflow-api-site'],
 		"operators" : params.config['configurations']['airflow-operators-site'],
 		"webserver" : params.config['configurations']['airflow-webserver-site'],
 		"email" : params.config['configurations']['airflow-email-site'],
